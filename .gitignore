@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+node_modules/
+dist/
+.DS_Store
+*.png
+!tests/pic.png
+inkling-backup-*.json
+!app-icon.png
+!src-tauri/icons/*.png
+src-tauri/target/
+!word-addin/*.png
+!docs/**/*.png
+src-tauri/gen/

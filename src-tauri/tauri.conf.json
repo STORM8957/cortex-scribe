@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Cortex Scribe",
+  "version": "0.35.0",
+  "identifier": "org.inkling.notebook",
+  "build": {
+    "frontendDist": "../dist",
+    "beforeDevCommand": "npm run web",
+    "beforeBuildCommand": "npm run web"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Cortex Scribe",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 760,
+        "minHeight": 520,
+        "dragDropEnabled": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "shortDescription": "A study notebook",
+    "publisher": "Cortex Scribe",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "macOS": {
+      "signingIdentity": "-"
+    }
+  }
+}

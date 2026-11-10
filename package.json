@@ -1,0 +1,28 @@
+{
+  "name": "inkling",
+  "private": true,
+  "version": "0.35.0",
+  "description": "Cortex Scribe study notebook: Claude artifact build, local-first desktop app and Word link",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "web": "node scripts/build.mjs --desktop",
+    "app": "tauri dev --no-dev-server",
+    "app:build": "tauri build",
+    "tauri": "tauri",
+    "docs:ai": "node scripts/ai-docs.mjs",
+    "word": "node scripts/word-bridge.mjs",
+    "word:setup": "node scripts/word-setup.mjs",
+    "word:remove": "node scripts/word-setup.mjs --remove",
+    "pad": "node scripts/pad-relay.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "mammoth": "1.6.0",
+    "pdfjs-dist": "3.11.174",
+    "qrcode-generator": "^1.4.4",
+    "three": "0.128.0",
+    "ws": "^8.22.2",
+    "xlsx": "0.18.5"
+  }
+}

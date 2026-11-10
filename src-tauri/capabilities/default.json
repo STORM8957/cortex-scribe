@@ -1,0 +1,30 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "What the Inkling window may use: events (to save before closing), opening web links in the normal browser, and requests to the AI server chosen in AI settings (any address, because the student picks it).",
+  "windows": [
+    "main",
+    "pad-*"
+  ],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "https://*:*"
+        },
+        {
+          "url": "http://*"
+        },
+        {
+          "url": "http://*:*"
+        }
+      ]
+    }
+  ]
+}

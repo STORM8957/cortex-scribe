@@ -1,0 +1,37 @@
+import os, pathlib, tempfile
+HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE)
+APP = pathlib.Path(HERE).parent.joinpath('inkling.html').as_uri()
+import asyncio, json
+from playwright.async_api import async_playwright
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch(); pg = await b.new_page(viewport={'width':1280,'height':820})
+        errs=[]
+        pg.on('pageerror', lambda e: errs.append('PAGEERROR: '+str(e)))
+        pg.on('console', lambda m: errs.append('CONSOLE: '+m.text) if m.type=='error' and 'ERR_NAME' not in m.text and '_blob' not in m.text and 'ERR_FILE' not in m.text else None)
+        await pg.add_init_script(open('mockprod.js').read())
+        await pg.goto(APP); await pg.wait_for_timeout(1500)
+        await pg.click('.t-row.top .t-name'); await pg.wait_for_timeout(200)
+        await pg.click('.t-name:has-text("Zellen")'); await pg.wait_for_timeout(1200)
+        print('old page opens:', await pg.evaluate("document.querySelectorAll('.sheet').length"), '| error shown:', await pg.evaluate("document.getElementById('empty').hidden ? 'no' : document.getElementById('empty').innerText.slice(0,80)"))
+        await pg.click('.flow'); await pg.keyboard.press('End'); await pg.keyboard.type(' Neu getippt.')
+        await pg.click('#dock button[aria-label="Note box (N)"]'); await pg.keyboard.type('Box'); await pg.keyboard.press('Escape')
+        n = await pg.query_selector('.obj-note'); bb = await n.bounding_box()
+        await pg.mouse.move(bb['x']+20, bb['y']+10); await pg.mouse.down(); await pg.mouse.move(bb['x']+120, bb['y']+80, steps=5); await pg.mouse.up()
+        await pg.wait_for_timeout(1500)
+        # reopen after saving (data now comes back frozen from the db)
+        await pg.click('.t-row.top .t-acts button'); await pg.click('.menu button:has-text("New page")'); await pg.wait_for_timeout(200)
+        await (await pg.query_selector_all('.kind'))[2].click(); await pg.fill('.modal input.field', 'Brett'); await pg.click('.modal .btn.primary'); await pg.wait_for_timeout(800)
+        print('new board opens:', await pg.evaluate("!!document.querySelector('.board')"))
+        await pg.click('.t-name:has-text("Zellen")'); await pg.wait_for_timeout(1200)
+        print('reopen old page:', await pg.evaluate("document.querySelectorAll('.sheet').length"), '| text:', await pg.evaluate("document.querySelector('.flow').innerText.replace(/\\n/g,' ')"), '| boxes:', await pg.evaluate("document.querySelectorAll('.obj-note').length"))
+        n = await pg.query_selector('.obj-note'); bb = await n.bounding_box()
+        await pg.mouse.move(bb['x']+20, bb['y']+10); await pg.mouse.down(); await pg.mouse.move(bb['x']+60, bb['y']+120, steps=5); await pg.mouse.up(); await pg.wait_for_timeout(300)
+        await pg.click('.t-name:has-text("Brett")'); await pg.wait_for_timeout(1000)
+        await pg.mouse.dblclick(600, 400); await pg.keyboard.type('Idee'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(1200)
+        await pg.click('.t-name:has-text("Zellen")'); await pg.wait_for_timeout(800)
+        await pg.click('.t-name:has-text("Brett")'); await pg.wait_for_timeout(1000)
+        print('board reopened with note:', await pg.evaluate("[...document.querySelectorAll('.obj-note')].map(n=>n.innerText)"))
+        print('ERRORS:', errs[:8])
+        await b.close()
+asyncio.run(main())

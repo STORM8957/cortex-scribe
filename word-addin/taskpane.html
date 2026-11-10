@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cortex Scribe</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+:root{--paper:#0B0B0D;--sheet:#161618;--ink:#EDEDF0;--muted:#9B9BA5;--line:#2B2B30;--accent:#E5383B;--accent-soft:#3B1517;--ok:#4FC985;--warn:#F2B860}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+.wrap{padding:16px;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font:600 18px "Segoe UI",system-ui,sans-serif}
+.brand img{width:30px;height:30px}
+.brand em{font-style:normal;color:#E2B1B3}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.st{display:flex;align-items:center;gap:8px;font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.dot.on{background:var(--ok)}.dot.wait{background:var(--warn)}.dot.off{background:var(--accent)}
+.muted{color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font:600 13px "Segoe UI",system-ui,sans-serif;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:9px;padding:7px 12px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
+b.num{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="icon-64.png" alt=""><span>Cortex<em> Scribe</em></span></div>
+  <div class="card">
+    <div class="st"><span class="dot" id="dot"></span><span id="state">Starting…</span></div>
+    <div class="muted" id="detail"></div>
+    <div class="row"><button class="primary" id="takeover" hidden>Use this window</button></div>
+  </div>
+  <div class="card">
+    <div><b class="num" id="paras">0</b> <span id="parasW">parts</span> · last update <b id="when">–</b></div>
+    <div class="muted" id="pages"></div>
+    <div class="row"><button id="pause">Pause the link</button></div>
+  </div>
+  <div class="card">
+    <b>What goes across</b>
+    <ul>
+      <li>Text, headings and lists, both ways, while you type.</li>
+      <li>Tables: type in the cells on either side. Rows and tables are added in Word.</li>
+      <li>Pictures stay exactly as they are in Word. Cortex Scribe shows them as boxes.</li>
+      <li>Drawings, side notes, recordings and everything else from Cortex Scribe never change this document.</li>
+    </ul>
+  </div>
+</div>
+<script src="sync-core.js"></script>
+<script src="taskpane.js"></script>
+</body>
+</html>

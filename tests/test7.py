@@ -1,0 +1,57 @@
+import os, pathlib, tempfile
+HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE)
+APP = pathlib.Path(HERE).parent.joinpath('inkling.html').as_uri()
+import asyncio, json
+from playwright.async_api import async_playwright
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch(); pg = await b.new_page(viewport={'width':1440,'height':900})
+        errs=[]
+        pg.on('pageerror', lambda e: errs.append('PAGEERROR: '+str(e)))
+        pg.on('console', lambda m: errs.append('CONSOLE: '+m.text) if m.type=='error' and 'ERR_NAME' not in m.text else None)
+        await pg.route('**/three.min.js', lambda route: route.fulfill(path='fake_three.js', content_type='application/javascript'))
+        await pg.add_init_script(open('mock3d.js').read())
+        await pg.goto(APP); await pg.wait_for_timeout(1000)
+        await pg.click('#newNotebook'); await pg.fill('.modal input.field', 'Kunst'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(300)
+        await (await pg.query_selector_all('.kind'))[2].click(); await pg.fill('.modal input.field', 'Brett'); await pg.click('.modal .btn.primary'); await pg.wait_for_timeout(600)
+        print('hint before:', await pg.evaluate("!!document.querySelector('.board-hint')"))
+        await pg.mouse.click(500, 600); await pg.wait_for_timeout(100)
+        print('hint after click:', await pg.evaluate("!!document.querySelector('.board-hint')"))
+        print('magic icon in dock:', await pg.evaluate("!!document.querySelector('#dock .magic-go svg path[d^=\"M3.5 20.5\"]')"))
+        # 3D studio: two models
+        await pg.click('#dock button[aria-label="3D studio"]'); await pg.wait_for_timeout(500)
+        await pg.fill('#ptab-m3d textarea', 'a star'); await pg.click('#ptab-m3d button:has-text("Create from text")'); await pg.wait_for_timeout(800)
+        await pg.click('#m3dTab-assets'); await pg.click('#m3dNew'); await pg.wait_for_timeout(200)   # a second model: Assets → New model
+        await pg.fill('#ptab-m3d textarea', 'a rocket'); await pg.click('#ptab-m3d button:has-text("Create from text")'); await pg.wait_for_timeout(800)
+        print('studio:', (await pg.inner_text('#ptab-m3d .v3-head')).replace('\n',' '), '| renders', await pg.evaluate('window.__renders'))
+        await pg.click('#ptab-m3d button:has-text("Put on the page")'); await pg.wait_for_timeout(800)
+        head = await pg.evaluate("[...document.querySelectorAll('.obj-m3d .w3-head button, .obj-m3d .w3-name')].map(b=>b.innerText.trim())")
+        print('window header:', head)
+        o = await pg.query_selector('.obj-m3d'); bb = await o.bounding_box(); x0 = bb['x']
+        r0 = await pg.evaluate('window.__renders')
+        await pg.mouse.move(bb['x']+bb['width']/2, bb['y']+bb['height']/2); await pg.mouse.down(); await pg.mouse.move(bb['x']+bb['width']/2+80, bb['y']+bb['height']/2+30, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(200)
+        bb2 = await o.bounding_box()
+        print('drag inside window: window moved?', abs(bb2['x']-x0) > 1, '| model re-rendered:', (await pg.evaluate('window.__renders')) > r0)
+        await pg.mouse.move(bb2['x']+bb2['width']/2, bb2['y']+12); await pg.mouse.down(); await pg.mouse.move(bb2['x']+bb2['width']/2+60, bb2['y']+52, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(200)
+        bb3 = await o.bounding_box(); print('drag header moves window:', abs(bb3['x']-bb2['x']) > 20)
+        await pg.click('.obj-m3d .w3-btn:has-text("Cmd")'); await pg.fill('.obj-m3d .w3-in', 'make it gold'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(600)
+        print('after cmd toast:', await pg.inner_text('#toast'))
+        await pg.click('.obj-m3d .w3-btn:has-text("Link")'); await pg.wait_for_timeout(200)
+        items = await pg.evaluate("[...document.querySelectorAll('.menu button')].map(b=>b.innerText)")
+        print('link menu:', items)
+        if items: await pg.click('.menu button >> nth=0'); await pg.wait_for_timeout(500)
+        print('links stored:', await pg.evaluate("(()=>{for(const k of Object.keys(localStorage)) if(k.includes('data:note_')){const d=JSON.parse(localStorage[k]); for(const o of Object.values(d.objs)) if(o.t==='m3d') return (o.links||[]).map(l=>l.name).join(',')+' | scene color '+o.scene.parts[0].color}})()"))
+        await pg.click('.obj-m3d .w3-btn:has-text("Expand")'); await pg.wait_for_timeout(400)
+        print('expanded overlay:', await pg.evaluate("!!document.querySelector('.v3-full .v3-canvas')"))
+        await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+        print('closed:', not await pg.evaluate("!!document.querySelector('.v3-full')"))
+        await pg.screenshot(path='t7.png')
+        # magic switches
+        await pg.click('#dock .magic-go'); await pg.wait_for_timeout(200)
+        print('magic drawing switches:', await pg.evaluate("[...document.querySelectorAll('.pop .sw-row')].map(r=>r.innerText.trim()).filter(t=>t.startsWith('Drawing'))"))
+        await pg.keyboard.press('Escape')
+        await pg.click('.obj-m3d .w3-btn:has-text("Delete")'); await pg.wait_for_timeout(300)
+        print('deleted:', await pg.evaluate("document.querySelectorAll('.obj-m3d').length") == 0, '|', await pg.inner_text('#toast'))
+        print('ERRORS:', errs[:8])
+        await b.close()
+asyncio.run(main())

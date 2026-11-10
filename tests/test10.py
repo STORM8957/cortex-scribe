@@ -1,0 +1,47 @@
+import os, pathlib, tempfile
+HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE)
+APP = pathlib.Path(HERE).parent.joinpath('inkling.html').as_uri()
+import asyncio
+from playwright.async_api import async_playwright
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch(); pg = await b.new_page(viewport={'width':1440,'height':900})
+        errs=[]; pg.on('pageerror', lambda e: errs.append(str(e)))
+        await pg.add_init_script(open('mock3d.js').read())
+        await pg.goto(APP); await pg.wait_for_timeout(900)
+        await pg.click('#newNotebook'); await pg.fill('.modal input.field', 'Bio'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(300)
+        await (await pg.query_selector_all('.kind'))[1].click(); await pg.fill('.modal input.field', 'Zellen'); await pg.click('.modal .btn.primary'); await pg.wait_for_timeout(500)
+        await pg.click('.flow'); await pg.keyboard.type('Mitochondrien sind die Kraftwerke der Zelle.')
+        await pg.click('.t-row.top .t-acts button'); await pg.click('.menu button:has-text("New page")'); await pg.wait_for_timeout(200)
+        await (await pg.query_selector_all('.kind'))[1].click(); await pg.fill('.modal input.field', 'Pflanzen'); await pg.click('.modal .btn.primary'); await pg.wait_for_timeout(500)
+        await pg.click('.flow'); await pg.keyboard.type('Bei der Photosynthese entsteht Sauerstoff.')
+        await pg.click('.t-row.top .t-acts button'); await pg.click('.menu button:has-text("New page")'); await pg.wait_for_timeout(200)
+        await (await pg.query_selector_all('.kind'))[2].click(); await pg.fill('.modal input.field', 'Brett'); await pg.click('.modal .btn.primary'); await pg.wait_for_timeout(700)
+        # notes search
+        await pg.fill('#noteSearch', 'pflan'); await pg.wait_for_timeout(500)
+        print('search "pflan":', await pg.evaluate("[...document.querySelectorAll('#tree .s-item b')].map(b=>b.innerText)"))
+        await pg.fill('#noteSearch', 'photosynth'); await pg.wait_for_timeout(1200)
+        print('search inside pages "photosynth":', (await pg.inner_text('#tree')).replace('\n',' | '))
+        await pg.click('#tree .s-item'); await pg.wait_for_timeout(700)
+        print('opened:', await pg.inner_text('#crumbs b'), '| highlight set:', await pg.evaluate("!!(window.CSS && CSS.highlights && CSS.highlights.has('fcfind'))"))
+        await pg.fill('#noteSearch', ''); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+        print('tree back:', await pg.evaluate("document.querySelectorAll('#tree .t-name').length"), 'rows')
+        # board with numbered objects
+        await pg.click('.t-name:has-text("Brett")'); await pg.wait_for_timeout(700)
+        for x in range(3):
+            await pg.mouse.click(1000, 760)
+            await pg.click('#dock button[aria-label="Note box (N)"]'); await pg.keyboard.type('Box nummer %d' % (x+1)); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(150)
+        await pg.keyboard.press('Control+d'); await pg.wait_for_timeout(200)
+        await pg.click('#dock button[aria-label="Sticky note (S)"]'); await pg.keyboard.press('Escape')
+        await pg.mouse.click(1000, 760)
+        await pg.keyboard.press('Control+k'); await pg.wait_for_timeout(300)
+        print('Ctrl+K focused page search:', await pg.evaluate("document.activeElement.id"))
+        print('everything on page:', await pg.evaluate("[...document.querySelectorAll('#psearchList .s-item b')].map(b=>b.innerText)"))
+        await pg.keyboard.type('box 3'); await pg.wait_for_timeout(300)
+        print('find "box 3":', await pg.evaluate("[...document.querySelectorAll('#psearchList .s-item b')].map(b=>b.innerText)"))
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(300)
+        print('selected after Enter:', await pg.evaluate("!document.getElementById('objbar').hidden"))
+        await pg.screenshot(path='t12.png')
+        print('ERRORS', errs)
+        await b.close()
+asyncio.run(main())

@@ -1,0 +1,148 @@
+<body>
+<div class="loading" id="loading"><span class="spinner"></span><span>Opening your notebooks…</span></div>
+
+<div class="app" id="app">
+  <aside class="side" id="side" aria-label="Notebooks">
+    <div class="side-inner">
+      <div class="side-head">
+        <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M14 7l3 3"/><path d="M4 20h7"/></svg>Cortex Scribe</div>
+        <button class="icon-btn" id="closeSide" aria-label="Hide notebooks" title="Hide notebooks"></button>
+      </div>
+      <div class="side-actions"><button class="btn primary" id="newNotebook"></button></div>
+      <div class="side-search" id="noteSearchBox"><input id="noteSearch" type="search" placeholder="Search notes…" aria-label="Search notes" autocomplete="off"></div>
+      <nav class="tree" id="tree" aria-label="Notebooks, folders and pages"></nav>
+      <div class="side-foot">
+        <button class="btn ghost" id="aiBtn"></button>
+        <button class="btn ghost" id="joinBtn"></button>
+        <button class="btn ghost" id="blocksBtn"></button>
+        <button class="btn ghost" id="libraryBtn"></button>
+        <button class="btn ghost" id="trashBtn"></button>
+        <button class="btn ghost" id="backupBtn"></button>
+        <button class="btn ghost" id="helpBtn"></button>
+        <div class="store-note" id="storeNote" hidden></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <header class="topbar">
+      <button class="icon-btn" id="openSide" aria-label="Show notebooks" title="Show or hide notebooks"></button>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="psearch" id="psearch" hidden><input id="pageSearch" type="search" placeholder="Find on this page (Ctrl+K)" aria-label="Find things on this page" autocomplete="off"><div class="psearch-list" id="psearchList" hidden role="listbox" aria-label="Things on this page"></div></div>
+      <div class="top-right">
+        <span class="status" id="status" aria-live="polite"></span>
+        <button class="acc-chip" id="accChip" hidden title="Accuracy from the last fact check"></button>
+        <div class="people" id="people" hidden></div>
+        <button class="btn small" id="shareBtn" hidden></button>
+      </div>
+    </header>
+
+    <div class="ribbon" id="ribbon" hidden>
+      <div class="rtabs" role="tablist" aria-label="Ribbon" id="rtabs"></div>
+      <div class="rbody" id="rbody" role="toolbar"></div>
+    </div>
+
+    <div class="linkbar" id="linkbar" hidden>
+      <p id="linkText"></p>
+      <button class="btn primary" id="linkHere" disabled>Link here</button>
+      <button class="btn" id="linkWhole">Link to this whole page</button>
+      <button class="btn" id="linkCancel">Cancel</button>
+    </div>
+    <div class="toolhint" id="toolhint" hidden><p id="toolhintText"></p><button class="btn small" id="toolhintCancel">Cancel</button></div>
+
+    <div class="work" id="work">
+      <div class="empty" id="empty"></div>
+    </div>
+    <div class="ghost-caret" id="ghost" hidden></div>
+  </main>
+
+  <aside class="panel" id="panel" aria-label="Tools">
+    <div class="panel-inner">
+      <div class="panel-head"><h2 id="panelTitle"></h2><button class="icon-btn" id="closePanel" aria-label="Close panel" title="Close panel"></button></div>
+
+      <section id="ptab-pen" class="panel-body" data-ptab="pen" hidden>
+        <p class="hint">Write or draw on the board. Turn it into typed text, a clean picture or a 3D model.</p>
+        <p class="ai-off" data-aioff hidden></p>
+        <div id="padTools"></div>
+        <div class="pad-wrap"><canvas id="pad" aria-label="Drawing board"></canvas><div class="pad-state" id="padState" hidden></div></div>
+        <div class="pad-keys">
+          <button class="btn primary" id="kType">Drawing → text</button>
+          <button class="btn" id="kImg">Drawing → picture</button>
+          <button class="btn" id="kClear">Clear pad</button>
+          <button class="btn" id="kEnter">New line</button>
+          <button class="btn" id="kSpace">Space</button>
+          <button class="btn" id="kBack">Delete letter</button>
+          <button class="btn" id="k3d">Make it a 3D model</button>
+          <button class="btn" id="kDetail">Add more detail</button>
+        </div>
+        <div class="last" id="padLast"></div>
+        <div id="padAutoWrap">
+          <label class="opt"><input type="checkbox" id="padAuto" checked> Type automatically after a pause</label>
+          <label class="opt">Pause <input type="range" id="padDelay" min="400" max="2500" step="100" value="1000" aria-label="Pause length"><span id="padDelayV">1.0 s</span></label>
+          <label class="opt"><input type="checkbox" id="padSpace"> Add a space after each word</label>
+        </div>
+        <h3>Your style</h3>
+        <label class="sr" for="padStyle">Describe your style</label>
+        <textarea class="field" id="padStyle" rows="2" style="min-height:64px" placeholder="Describe your style, e.g. comic style, pastel colours, clean line art"></textarea>
+        <div class="style-img"><button class="btn small" id="padStyleBtn">Upload an image for your style</button><img id="padStyleThumb" alt="Your style picture" hidden><button class="icon-btn" id="padStyleDel" aria-label="Remove the style picture" title="Remove" hidden>×</button></div>
+        <p class="hint">Pictures and 3D models use your style. Each conversion is one request to the AI.</p>
+      </section>
+
+      <section id="ptab-format" class="panel-body" data-ptab="format" hidden></section>
+      <section id="ptab-fact" class="panel-body" data-ptab="fact" hidden></section>
+      <section id="ptab-sources" class="panel-body" data-ptab="sources" hidden></section>
+
+      <section id="ptab-chat" class="panel-body chat" data-ptab="chat" hidden>
+        <p class="ai-off" data-aioff hidden></p>
+        <div class="scope">
+          <label class="sr" for="chatScope">Notes the AI reads</label>
+          <select id="chatScope"><option value="page">This page</option><option value="folder">This folder</option><option value="notebook" selected>Whole notebook</option></select>
+          <label class="opt"><input type="checkbox" id="chatPics" checked> Pictures</label>
+          <label class="opt"><input type="checkbox" id="chatSrc" checked> Sources</label>
+          <button class="icon-btn" id="chatClear" aria-label="Clear chat" title="Clear chat"></button>
+        </div>
+        <div class="msgs" id="msgs" aria-live="polite"></div>
+        <div class="composer">
+          <label class="sr" for="chatIn">Message</label>
+          <textarea id="chatIn" rows="1" placeholder="Ask about your notes…"></textarea>
+          <button class="btn primary" id="chatSend">Send</button>
+        </div>
+      </section>
+
+      <section id="ptab-learn" class="panel-body" data-ptab="learn" hidden>
+        <p class="ai-off" data-aioff hidden></p>
+        <div class="scoreboard" id="scoreboard"></div>
+        <div class="scope">
+          <label class="sr" for="learnScope">Notes to use</label>
+          <select id="learnScope"><option value="page">This page</option><option value="folder">This folder</option><option value="notebook" selected>Whole notebook</option></select>
+          <label class="sr" for="learnCount">Questions</label>
+          <select id="learnCount" title="Questions in a quiz"><option value="5">5 questions</option><option value="10" selected>10 questions</option><option value="15">15 questions</option><option value="20">20 questions</option></select>
+          <select id="learnLevel" aria-label="Difficulty"><option value="mixed" selected>Mixed</option><option value="easy">Easy</option><option value="hard">Hard</option></select>
+        </div>
+        <label class="sr" for="learnFocus">Focus</label>
+        <input class="focus-in" id="learnFocus" placeholder="Optional: what should it focus on?">
+        <div class="learn-btns">
+          <button class="btn" data-learn="quiz">Quiz with score</button>
+          <button class="btn" data-learn="cards">Flashcards</button>
+          <button class="btn" data-learn="summary">Summary</button>
+          <button class="btn" data-learn="map">Mind map</button>
+        </div>
+        <div class="busy" id="learnBusy" hidden><span class="spinner"></span><span id="learnBusyT"></span><button class="btn" id="learnStop">Stop</button></div>
+        <div class="studio" id="studio"></div>
+      </section>
+
+      <section id="ptab-m3d" class="panel-body" data-ptab="m3d" hidden></section>
+      <section id="ptab-outline" class="panel-body" data-ptab="outline" hidden></section>
+      <section id="ptab-calc" class="panel-body" data-ptab="calc" hidden></section>
+    </div>
+  </aside>
+
+  <nav class="rail" id="rail" aria-label="Tools"></nav>
+  <div class="drawer-scrim" id="drawerScrim"></div>
+</div>
+<div class="objbar" id="objbar" hidden role="toolbar" aria-label="Selected item"></div>
+<div class="toast" id="toast" role="status"></div>
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<input type="file" id="importIn" accept=".json,application/json" hidden>
+<input type="file" id="styleIn" accept="image/*" hidden>
+<input type="file" id="srcIn" multiple hidden accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,.json,image/*">

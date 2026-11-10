@@ -1,0 +1,64 @@
+# Builds the installers on GitHub's own computers and puts them on the Releases page, so testers can download
+# Cortex Scribe like any app (nothing else to install). Runs when a version tag is pushed (git tag v0.35.0 &&
+# git push --tags) or by hand (Actions → Build the app → Run workflow).
+# Windows: normal PCs (x64) and ARM laptops (Snapdragon); Mac (Apple and Intel in one); Linux.
+name: Build the app
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            args: --bundles nsis
+            targets: ''
+          - os: windows-latest
+            args: --target aarch64-pc-windows-msvc --bundles nsis
+            targets: aarch64-pc-windows-msvc
+          - os: macos-latest
+            args: --target universal-apple-darwin --bundles dmg
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - os: ubuntu-22.04
+            args: --bundles appimage,deb
+            targets: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux libraries
+        if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.targets }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Cortex Scribe __VERSION__
+          releaseBody: |
+            **Download the installer for your computer below (Assets):**
+            - Windows, most PCs: `Cortex.Scribe_…_x64-setup.exe`
+            - Windows on ARM (Snapdragon laptops): `Cortex.Scribe_…_arm64-setup.exe`
+            - Mac: `Cortex.Scribe_…_universal.dmg`
+            - Linux: `.AppImage` or `.deb`
+
+            Windows may say “Windows protected your PC”: click **More info → Run anyway** (the app isn't signed with a paid certificate yet).
+            On a Mac: right-click the app → **Open** the first time.
+          releaseDraft: false
+          prerelease: true
+          args: ${{ matrix.args }}
