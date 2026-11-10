@@ -1,11 +1,12 @@
 # Builds the installers on GitHub's own computers and puts them on the Releases page, so testers can download
-# Cortex Scribe like any app (nothing else to install). Runs when a version tag is pushed (git tag v0.35.0 &&
-# git push --tags) or by hand (Actions → Build the app → Run workflow).
+# Cortex Scribe like any app (nothing else to install). Runs when a version tag (v0.35.0) or a version branch
+# (app-v0.35) is pushed, or by hand (Actions → Build the app → Run workflow).
 # Windows: normal PCs (x64) and ARM laptops (Snapdragon); Mac (Apple and Intel in one); Linux.
 name: Build the app
 on:
   push:
     tags: ['v*']
+    branches: ['app-v*']      # a version branch (app-v0.35) builds too; the Release and its tag are made here
   workflow_dispatch:
 permissions:
   contents: write
