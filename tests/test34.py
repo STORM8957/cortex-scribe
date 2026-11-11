@@ -1,4 +1,4 @@
-# The demo version for friends: the 5 basic colours (pen, highlighter, pad, text colour; “More colours” for the rest),
+# The demo version for friends: ⚙ Settings (accent colour red/pink/blue/green/black, background), the full drawing colours,
 # the navy blue theme next to black and white, the coming sections hidden (and back with View → Coming sections),
 # the Word link in the sidebar, and PDF export (top bar, View tab, the page's menu): A4 pages with their own size and
 # header/footer, an endless page cut into pages, a board as one page; a real PDF a PDF reader opens.
@@ -76,22 +76,27 @@ async def main():
         must['navy theme'] = opts[:3] == ['Black (with red)', 'White', 'Navy blue'] and navy[0] == 'navy' and navy[1] == 'rgb(10, 20, 40)'
         await pg.select_option('select[aria-label="Colours"]', 'dark'); await pg.wait_for_timeout(200)
 
-        # 3. the 5 basic colours
+        # 3. the drawing colours have their full rows; ⚙ Settings sets the accent colour (the red of buttons) and the background
         await pg.click('.rtab:has-text("Draw")'); await pg.wait_for_timeout(200)
         await pg.click('#rbody [data-tool="pen"]'); await pg.wait_for_timeout(200)
-        pen = await pg.evaluate("[...document.querySelectorAll('#rbody .swatches .sw')].map(b => b.getAttribute('aria-label'))")
+        pen = await pg.evaluate("document.querySelectorAll('#rbody .swatches .sw').length")
+        await pg.click('#rbody [data-tool="text"]'); await pg.wait_for_timeout(200)
         if not await pg.is_visible('#ptab-pen'): await pg.click('#rail button[data-ptab="pen"]')
         await pg.wait_for_timeout(300)
         pad = await pg.evaluate("document.querySelectorAll('#padTools .pad-sw .sw').length")
-        await pg.click('#rbody [data-tool="text"]'); await pg.wait_for_timeout(200)
-        await pg.click('.rtab:has-text("Home")'); await pg.wait_for_timeout(200)
-        await pg.click('.flow p'); await pg.click('#rbody button[aria-label="Text colour: choose colour"]'); await pg.wait_for_timeout(200)
-        basic = await pg.evaluate("[...document.querySelectorAll('.pal button')].map(b => b.getAttribute('aria-label') || b.innerText.trim())")
-        await pg.click('.pal button.more'); await pg.wait_for_timeout(200)
-        more = await pg.evaluate("document.querySelectorAll('.pal button[aria-label^=\"#\"]').length")
-        await pg.keyboard.press('Escape'); await pg.mouse.click(5, 5)
-        print('pen colours:', pen, '| pad colours:', pad, '| text colour:', basic, '| more colours:', more)
-        must['5 basic colours'] = len(pen) == 6 and pen[:4] == ['Colour #E5383B', 'Colour #FF5FA2', 'Colour #2563EB', 'Colour #16A34A'] and pad == 5 and basic[:5] == ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', '#000000'] and 'More colours' in basic and more >= 20
+        print('pen colours:', pen, '| pad colours:', pad)
+        must['full drawing colours'] = pen >= 12 and pad >= 20
+        await pg.click('#settingsBtn'); await pg.wait_for_timeout(300)
+        red = await pg.evaluate("getComputedStyle(document.querySelector('.modal .btn.primary')).backgroundColor")
+        await pg.click('.set-accent[data-accent="blue"]'); await pg.wait_for_timeout(200)
+        blue = await pg.evaluate("[getComputedStyle(document.querySelector('.modal .btn.primary')).backgroundColor, document.documentElement.dataset.accent]")
+        await pg.click('.settings .set-seg button:has-text("White")'); await pg.wait_for_timeout(200)
+        white = await pg.evaluate("[document.documentElement.dataset.theme, getComputedStyle(document.body).backgroundColor, getComputedStyle(document.querySelector('.modal .btn.primary')).backgroundColor]")
+        await pg.click('.modal .btn.primary:has-text("Done")'); await pg.wait_for_timeout(200)
+        print('Settings: accent red', red, '→ blue', blue, '| white background:', white)
+        must['settings accent and background'] = red == 'rgb(229, 56, 59)' and blue == ['rgb(76, 141, 255)', 'blue'] and white == ['light', 'rgb(242, 242, 243)', 'rgb(37, 99, 235)']
+        await pg.click('#settingsBtn'); await pg.wait_for_timeout(200)
+        await pg.click('.set-accent[data-accent="red"]'); await pg.click('.settings .set-seg button:has-text("Black")'); await pg.click('.modal .btn.primary:has-text("Done")'); await pg.wait_for_timeout(200)
 
         # 4. PDF: an A5 sideways page (two pages), from the top bar
         await pg.click('.rtab:has-text("View")'); await pg.wait_for_timeout(200)

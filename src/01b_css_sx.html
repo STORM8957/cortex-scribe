@@ -386,7 +386,6 @@ button.sx-more:hover{color:var(--ink);background:var(--line-soft)}
 
 /* the navy blue theme: like the dark one, on navy (View → Colours) */
 html:root[data-theme="navy"]{--paper:#0A1428;--sheet:#101E3A;--ink:#EAF0FF;--muted:#9CACCF;--line:#22355E;--line-soft:#1A2A4C;--grid:#1C2E54;--pad-bg:#0D1932;--accent-soft:#3A1A2A;--scrim:rgba(2,6,18,.62);--c-blue-soft:#15284D;color-scheme:dark}
-.pal button.more{grid-column:1/-1}
 
 /* Home without the coming sections (demo), and the Word link screen (sidebar → Word link) */
 .sx-grid.home.nopv{grid-template-columns:1fr 1fr}
@@ -407,4 +406,12 @@ html:root[data-theme="navy"]{--paper:#0A1428;--sheet:#101E3A;--ink:#EAF0FF;--mut
 @media (max-width:900px){.sx-grid.home.nopv,.sx-grid.wordsec{grid-template-columns:minmax(0,1fr)}.sx-grid.wordsec .sx-wfind{grid-row:auto}}
 .pdf-btn{display:inline-flex;align-items:center;gap:5px}.pdf-btn svg{width:16px;height:16px}
 @media (max-width:700px){.pdf-btn span{display:none}}
+/* ⚙ Settings (53_settings.js) */
+.settings h3{margin:16px 0 8px;font-size:14px}.settings h3:first-child{margin-top:0}
+.set-seg{display:flex;flex-wrap:wrap;gap:6px}
+.set-accents{display:flex;flex-wrap:wrap;gap:8px}
+.set-accent{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);cursor:pointer}
+.set-accent[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.set-accent .dot{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(127,127,127,.4)}
+.set-check{display:flex;gap:8px;align-items:flex-start;margin:6px 0;cursor:pointer}.set-check input{margin-top:3px}
 </style>

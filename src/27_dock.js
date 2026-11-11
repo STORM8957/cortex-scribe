@@ -60,12 +60,8 @@ function switchBtn(on, label, onChange) {
   b.addEventListener('click', () => { const v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); onChange(v); });
   return b;
 }
-/* pen and highlighter: the 5 basic colours (black is the page's ink: black on white paper, white on a dark page);
-   every other colour is under “Other colour” / “Any colour” */
-const INK_COLORS = ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', 'var(--ink)'];
-const HL_COLORS = BASIC_HL;
-const INK_ALL = ['var(--ink)', '#E5383B', '#FF5FA2', '#FF7F27', '#FFC90E', '#22B14C', '#16A34A', '#00A2E8', '#2563EB', '#3F48CC', '#A349A4', '#B97A57', '#7F7F7F', '#FFFFFF', '#000000'];
-const HL_ALL = ['#FFE46B', '#FFB3C7', '#A6E3FF', '#B9F0A8', '#FFC890', '#D7C4FF', '#FF8A8A'];
+const INK_COLORS = ['var(--ink)', '#E5383B', '#FF7F27', '#FFC90E', '#22B14C', '#00A2E8', '#3F48CC', '#A349A4', '#B97A57', '#7F7F7F', '#FFFFFF', '#000000'];
+const HL_COLORS = ['#FFE46B', '#FFB3C7', '#A6E3FF', '#B9F0A8', '#FFC890', '#D7C4FF', '#FF8A8A'];
 function penPop(anchor, kind) {
   const isHl = kind === 'hl';
   const box = h('div');
@@ -73,7 +69,7 @@ function penPop(anchor, kind) {
   const curC = isHl ? inkState.hlColor : inkState.color;
   const setC = (c) => { if (isHl) { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); } renderDock(); if (rtab === 'draw') renderRibbon(); penPop($('#dock [data-tool="' + (isHl ? 'hl' : 'pen') + '"]') || anchor, kind); };
   box.append(h('h4', null, isHl ? 'Highlighter colour' : 'Pen colour'),
-    h('div', { class: 'swatches', style: { flexWrap: 'wrap', gap: '6px' } }, cols.map((c) => h('button', { class: 'sw', style: { background: c }, 'aria-label': c === 'var(--ink)' ? 'Black (white on a dark page)' : 'Colour ' + c, title: c === 'var(--ink)' ? 'Ink' : c, 'aria-pressed': String(c === curC), onclick: () => setC(c) })),
+    h('div', { class: 'swatches', style: { flexWrap: 'wrap', gap: '6px' } }, cols.map((c) => h('button', { class: 'sw', style: { background: c }, 'aria-label': c === 'var(--ink)' ? 'Ink (black or white)' : 'Colour ' + c, title: c === 'var(--ink)' ? 'Ink' : c, 'aria-pressed': String(c === curC), onclick: () => setC(c) })),
       h('input', { type: 'color', 'aria-label': 'Any colour', value: /^#[0-9a-f]{6}$/i.test(curC) ? curC : '#e5383b', onchange: (e) => setC(e.target.value) })));
   const sizes = isHl ? [10, 18, 28] : [1.5, 3, 6, 10];
   const curS = isHl ? inkState.hlSize : inkState.size;

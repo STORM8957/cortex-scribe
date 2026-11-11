@@ -314,15 +314,10 @@ function openMenu(anchor, items) {
 }
 const COLORS = ['#1E2740', '#5B6576', '#B42318', '#D9480F', '#B7791F', '#2F855A', '#0F6B67', '#1C5BCB', '#6B4FD8', '#B83280', '#FFFFFF', '#000000',
   '#FFE46B', '#FFC9D9', '#C6E2FF', '#CDEFC4', '#FFD3A8', '#E1D2FF', '#DAEEEA', '#F1F3F0'];
-/* the 5 basic colours shown first everywhere (red, pink, blue, green, black); all the others are one click away */
-const BASIC_COLORS = ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', '#000000'];
-const BASIC_HL = ['#FFE46B', '#FFB3C7', '#A6E3FF', '#B9F0A8', '#FF8A8A'];   // highlighter: yellow and light versions
 function openPalette(anchor, onPick, opts = {}) {
   closeMenu();
   const m = h('div', { class: 'pal', role: 'dialog', 'aria-label': opts.label || 'Pick a colour' });
-  const basic = !opts.colors && !opts.all;
-  for (const c of (opts.colors || (opts.all ? COLORS : BASIC_COLORS))) m.append(h('button', { style: { background: c }, 'aria-label': c, title: c, onclick: () => { closeMenu(); onPick(c); } }));
-  if (basic) m.append(h('button', { class: 'none more', onclick: (e) => { e.stopPropagation(); closeMenu(); openPalette(anchor, onPick, { ...opts, all: true }); } }, 'More colours'));
+  for (const c of (opts.colors || COLORS)) m.append(h('button', { style: { background: c }, 'aria-label': c, title: c, onclick: () => { closeMenu(); onPick(c); } }));
   if (opts.none) m.append(h('button', { class: 'none', onclick: () => { closeMenu(); onPick(null); } }, opts.none));
   const inp = h('input', { type: 'color', 'aria-label': 'Custom colour', value: opts.value && /^#[0-9a-f]{6}$/i.test(opts.value) ? opts.value : '#0f6b67' });
   inp.addEventListener('change', () => { closeMenu(); onPick(inp.value); });

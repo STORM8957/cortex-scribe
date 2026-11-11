@@ -720,7 +720,6 @@ button.sx-more:hover{color:var(--ink);background:var(--line-soft)}
 
 /* the navy blue theme: like the dark one, on navy (View → Colours) */
 html:root[data-theme="navy"]{--paper:#0A1428;--sheet:#101E3A;--ink:#EAF0FF;--muted:#9CACCF;--line:#22355E;--line-soft:#1A2A4C;--grid:#1C2E54;--pad-bg:#0D1932;--accent-soft:#3A1A2A;--scrim:rgba(2,6,18,.62);--c-blue-soft:#15284D;color-scheme:dark}
-.pal button.more{grid-column:1/-1}
 
 /* Home without the coming sections (demo), and the Word link screen (sidebar → Word link) */
 .sx-grid.home.nopv{grid-template-columns:1fr 1fr}
@@ -741,6 +740,14 @@ html:root[data-theme="navy"]{--paper:#0A1428;--sheet:#101E3A;--ink:#EAF0FF;--mut
 @media (max-width:900px){.sx-grid.home.nopv,.sx-grid.wordsec{grid-template-columns:minmax(0,1fr)}.sx-grid.wordsec .sx-wfind{grid-row:auto}}
 .pdf-btn{display:inline-flex;align-items:center;gap:5px}.pdf-btn svg{width:16px;height:16px}
 @media (max-width:700px){.pdf-btn span{display:none}}
+/* ⚙ Settings (53_settings.js) */
+.settings h3{margin:16px 0 8px;font-size:14px}.settings h3:first-child{margin-top:0}
+.set-seg{display:flex;flex-wrap:wrap;gap:6px}
+.set-accents{display:flex;flex-wrap:wrap;gap:8px}
+.set-accent{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);cursor:pointer}
+.set-accent[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.set-accent .dot{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(127,127,127,.4)}
+.set-check{display:flex;gap:8px;align-items:flex-start;margin:6px 0;cursor:pointer}.set-check input{margin-top:3px}
 </style>
 <style>
 /* ---------- right panel + rail ---------- */
@@ -1939,15 +1946,10 @@ function openMenu(anchor, items) {
 }
 const COLORS = ['#1E2740', '#5B6576', '#B42318', '#D9480F', '#B7791F', '#2F855A', '#0F6B67', '#1C5BCB', '#6B4FD8', '#B83280', '#FFFFFF', '#000000',
   '#FFE46B', '#FFC9D9', '#C6E2FF', '#CDEFC4', '#FFD3A8', '#E1D2FF', '#DAEEEA', '#F1F3F0'];
-/* the 5 basic colours shown first everywhere (red, pink, blue, green, black); all the others are one click away */
-const BASIC_COLORS = ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', '#000000'];
-const BASIC_HL = ['#FFE46B', '#FFB3C7', '#A6E3FF', '#B9F0A8', '#FF8A8A'];   // highlighter: yellow and light versions
 function openPalette(anchor, onPick, opts = {}) {
   closeMenu();
   const m = h('div', { class: 'pal', role: 'dialog', 'aria-label': opts.label || 'Pick a colour' });
-  const basic = !opts.colors && !opts.all;
-  for (const c of (opts.colors || (opts.all ? COLORS : BASIC_COLORS))) m.append(h('button', { style: { background: c }, 'aria-label': c, title: c, onclick: () => { closeMenu(); onPick(c); } }));
-  if (basic) m.append(h('button', { class: 'none more', onclick: (e) => { e.stopPropagation(); closeMenu(); openPalette(anchor, onPick, { ...opts, all: true }); } }, 'More colours'));
+  for (const c of (opts.colors || COLORS)) m.append(h('button', { style: { background: c }, 'aria-label': c, title: c, onclick: () => { closeMenu(); onPick(c); } }));
   if (opts.none) m.append(h('button', { class: 'none', onclick: () => { closeMenu(); onPick(null); } }, opts.none));
   const inp = h('input', { type: 'color', 'aria-label': 'Custom colour', value: opts.value && /^#[0-9a-f]{6}$/i.test(opts.value) ? opts.value : '#0f6b67' });
   inp.addEventListener('change', () => { closeMenu(); onPick(inp.value); });
@@ -6257,8 +6259,7 @@ let lastTextColor = prefs.get('tColor', '#B42318'), lastHlColor = prefs.get('hCo
 function colorBtn(icon, label, get, set) {
   const b = rb(icon, label, () => set(get()), { cls: 'colorbtn' });
   const bar = h('span', { class: 'bar', style: { background: get() } }); b.append(bar);
-  const hl = label.includes('Highlight');
-  const dd = rb('down', label + ': choose colour', (e) => openPalette(e.currentTarget, (c) => { if (c) bar.style.background = c; set(c); }, { none: hl ? 'No highlight' : 'Automatic', colors: hl ? BASIC_HL.concat(['#FFC890', '#D7C4FF']) : null }));
+  const dd = rb('down', label + ': choose colour', (e) => openPalette(e.currentTarget, (c) => { if (c) bar.style.background = c; set(c); }, { none: label.includes('Highlight') ? 'No highlight' : 'Automatic' }));
   dd.style.minWidth = '18px'; dd.style.padding = '0 2px';
   return h('span', { class: 'rgroup' }, b, dd);
 }
@@ -6322,7 +6323,7 @@ function renderRibbon() {
     const cols = isHl ? HL_COLORS : INK_COLORS;
     const cur0 = isHl ? inkState.hlColor : inkState.color;
     const sws = h('div', { class: 'swatches' }, cols.map((c) => nodown(h('button', { class: 'sw', style: { background: c }, 'aria-label': c === 'var(--ink)' ? 'Black (white on a dark page)' : 'Colour ' + c, title: c === 'var(--ink)' ? 'Black (white on a dark page)' : c, 'aria-pressed': String(c === cur0), onclick: () => { if (tool === 'hl') { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); if (tool !== 'pen') setTool('pen'); } renderRibbon(); } }))),
-      nodown(h('button', { class: 'sw', style: { background: 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' }, 'aria-label': 'Other colour', onclick: (e) => openPalette(e.currentTarget, (c) => { if (!c) return; if (tool === 'hl') { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); } renderRibbon(); }, { colors: isHl ? HL_ALL : INK_ALL.concat(COLORS.filter((x) => !INK_ALL.includes(x))) }) })));
+      nodown(h('button', { class: 'sw', style: { background: 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' }, 'aria-label': 'Other colour', onclick: (e) => openPalette(e.currentTarget, (c) => { if (!c) return; if (tool === 'hl') { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); } renderRibbon(); }) })));
     const sizes = isHl ? [10, 18, 28] : [2, 3, 6];
     const curS = isHl ? inkState.hlSize : inkState.size;
     const sz = h('div', { class: 'sizes' }, sizes.map((s, i) => rb(null, ['Thin', 'Medium', 'Thick'][i], () => { if (tool === 'hl') { inkState.hlSize = s; prefs.set('hlSize', s); } else { inkState.size = s; prefs.set('inkSize', s); } renderRibbon(); }, { html: '<span style="width:' + (4 + i * 4) + 'px;height:' + (4 + i * 4) + 'px"></span>' })));
@@ -6365,7 +6366,7 @@ function renderRibbon() {
       rb('fit', view.kind === 'board' ? 'Fit everything' : 'Fit to width', () => view.fit()), rb(null, 'Actual size', () => view.zoomReset(), { html: '<span style="font-weight:700;font-size:12.5px">100%</span>' }), rsep());
     if (view.kind === 'board') add(rb('present', 'Present the frames as slides', () => present(), { big: true, text: 'Present' }));
     add(rselect('Colours', [['dark', 'Black (with red)'], ['light', 'White'], ['navy', 'Navy blue'], ['auto', 'Match my device']], prefs.get('theme', 'dark'), (v) => { prefs.set('theme', v); applyTheme(); }),
-      rb('sidebar', 'Show or hide notebooks', () => toggleSide(), { text: 'Notebooks' }));
+      rb('sidebar', 'Show or hide notebooks', () => toggleSide(), { text: 'Notebooks' }), rb('cog', 'Settings: background, accent colour, intro, AI', () => settingsModal(), { text: 'Settings' }));
     const pvw = h('input', { type: 'checkbox', checked: showPreviews() ? true : null });   // 47_sections.js
     pvw.addEventListener('change', () => { prefs.set('previews', pvw.checked); renderSecNav(); if (secOpen) renderSection(); });
     add(h('label', { class: 'rcheck', title: 'Subjects & grades, Calendar, Task and Study projects, Coding logbook: screens with example data that show what is coming.' }, pvw, 'Coming sections (preview)'));
@@ -6394,6 +6395,7 @@ function syncRibbonState() {
 function applyTheme() {
   const t = prefs.get('theme', 'dark');
   if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+  if (typeof applyAccent === 'function') applyAccent();   // 53_settings.js: the accent colour depends on dark or light
   if (view) view.renderAll(true);
   v3Theme();
 }
@@ -8246,12 +8248,8 @@ function switchBtn(on, label, onChange) {
   b.addEventListener('click', () => { const v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); onChange(v); });
   return b;
 }
-/* pen and highlighter: the 5 basic colours (black is the page's ink: black on white paper, white on a dark page);
-   every other colour is under “Other colour” / “Any colour” */
-const INK_COLORS = ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', 'var(--ink)'];
-const HL_COLORS = BASIC_HL;
-const INK_ALL = ['var(--ink)', '#E5383B', '#FF5FA2', '#FF7F27', '#FFC90E', '#22B14C', '#16A34A', '#00A2E8', '#2563EB', '#3F48CC', '#A349A4', '#B97A57', '#7F7F7F', '#FFFFFF', '#000000'];
-const HL_ALL = ['#FFE46B', '#FFB3C7', '#A6E3FF', '#B9F0A8', '#FFC890', '#D7C4FF', '#FF8A8A'];
+const INK_COLORS = ['var(--ink)', '#E5383B', '#FF7F27', '#FFC90E', '#22B14C', '#00A2E8', '#3F48CC', '#A349A4', '#B97A57', '#7F7F7F', '#FFFFFF', '#000000'];
+const HL_COLORS = ['#FFE46B', '#FFB3C7', '#A6E3FF', '#B9F0A8', '#FFC890', '#D7C4FF', '#FF8A8A'];
 function penPop(anchor, kind) {
   const isHl = kind === 'hl';
   const box = h('div');
@@ -8259,7 +8257,7 @@ function penPop(anchor, kind) {
   const curC = isHl ? inkState.hlColor : inkState.color;
   const setC = (c) => { if (isHl) { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); } renderDock(); if (rtab === 'draw') renderRibbon(); penPop($('#dock [data-tool="' + (isHl ? 'hl' : 'pen') + '"]') || anchor, kind); };
   box.append(h('h4', null, isHl ? 'Highlighter colour' : 'Pen colour'),
-    h('div', { class: 'swatches', style: { flexWrap: 'wrap', gap: '6px' } }, cols.map((c) => h('button', { class: 'sw', style: { background: c }, 'aria-label': c === 'var(--ink)' ? 'Black (white on a dark page)' : 'Colour ' + c, title: c === 'var(--ink)' ? 'Ink' : c, 'aria-pressed': String(c === curC), onclick: () => setC(c) })),
+    h('div', { class: 'swatches', style: { flexWrap: 'wrap', gap: '6px' } }, cols.map((c) => h('button', { class: 'sw', style: { background: c }, 'aria-label': c === 'var(--ink)' ? 'Ink (black or white)' : 'Colour ' + c, title: c === 'var(--ink)' ? 'Ink' : c, 'aria-pressed': String(c === curC), onclick: () => setC(c) })),
       h('input', { type: 'color', 'aria-label': 'Any colour', value: /^#[0-9a-f]{6}$/i.test(curC) ? curC : '#e5383b', onchange: (e) => setC(e.target.value) })));
   const sizes = isHl ? [10, 18, 28] : [1.5, 3, 6, 10];
   const curS = isHl ? inkState.hlSize : inkState.size;
@@ -8321,7 +8319,6 @@ function refreshMagicPop() {
 }
 
 /* ================= handwriting pad extras: modes, colours, style, drawing → picture ================= */
-const PAD_BASIC = ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', 'ink'];   // the 5 basic colours; “Any colour” for the rest
 const PAD_COLORS = ['ink', '#000000', '#7F7F7F', '#880015', '#ED1C24', '#FF7F27', '#FFF200', '#22B14C', '#00A2E8', '#3F48CC', '#A349A4', '#FFFFFF', '#C3C3C3', '#B97A57', '#FFAEC9', '#FFC90E', '#EFE4B0', '#B5E61D', '#99D9EA', '#7092BE', '#C8BFE7'];
 const padMode = () => prefs.get('padMode', 'write');
 let padStyleBlob = null;
@@ -8335,7 +8332,7 @@ function dataURLtoBlob(d) {
 function renderPadTools() {
   const box = $('#padTools'); if (!box) return; box.textContent = '';
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'What the pad is for' }, [['write', 'Write text'], ['draw', 'Draw a picture']].map(([k, l]) => h('button', { class: 'chip', 'aria-pressed': String(padMode() === k), onclick: () => { prefs.set('padMode', k); clearTimeout(pad.timer); renderPadTools(); } }, l)));
-  const sws = h('div', { class: 'swatches pad-sw' }, PAD_BASIC.map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, title: c === 'ink' ? 'Black (white on a dark page)' : c, 'aria-label': 'Pad colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(pad.color === c), onclick: () => { pad.color = c; prefs.set('padColor', c); renderPadTools(); } })),
+  const sws = h('div', { class: 'swatches pad-sw' }, PAD_COLORS.map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, title: c === 'ink' ? 'Ink' : c, 'aria-label': 'Pad colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(pad.color === c), onclick: () => { pad.color = c; prefs.set('padColor', c); renderPadTools(); } })),
     h('input', { type: 'color', 'aria-label': 'Any colour', value: /^#[0-9a-f]{6}$/i.test(pad.color) ? pad.color : '#e5383b', onchange: (e) => { pad.color = e.target.value; prefs.set('padColor', pad.color); renderPadTools(); } }));
   const sizes = h('div', { class: 'sizes' }, [2, 3.6, 7, 12].map((s, i) => h('button', { class: 'tb', 'aria-label': ['Thin', 'Normal', 'Thick', 'Very thick'][i] + ' line', 'aria-pressed': String(pad.size === s), onclick: () => { pad.size = s; prefs.set('padSize', s); renderPadTools(); } }, h('span', { style: { width: (3 + i * 3) + 'px', height: (3 + i * 3) + 'px' } }))));
   box.append(seg, h('div', { class: 'pad-row' }, sws, sizes));
@@ -11611,7 +11608,7 @@ function pmSide() {
   };
   const sizes = () => h('div', { class: 'sizes' }, [2, 3.6, 7, 12].map((sz, i) => h('button', { class: 'tb', 'aria-label': ['Thin', 'Normal', 'Thick', 'Very thick'][i] + ' line', 'aria-pressed': String(prefs.get('padSize', 3.6) === sz), onclick: () => { prefs.set('padSize', sz); again(); } }, h('span', { style: { width: (3 + i * 3) + 'px', height: (3 + i * 3) + 'px' } }))));
   const colourBox = (withPen) => h('section', { class: 'pm-box' }, h('h4', null, withPen ? 'Colour and pen' : 'Colour'),
-    h('div', { class: 'swatches pad-sw' }, PAD_BASIC.map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, 'aria-label': 'Colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(colour === c), onclick: () => { prefs.set('padColor', c); again(); } })),
+    h('div', { class: 'swatches pad-sw' }, PAD_COLORS.slice(0, 14).map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, 'aria-label': 'Colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(colour === c), onclick: () => { prefs.set('padColor', c); again(); } })),
       h('input', { type: 'color', 'aria-label': 'Any colour', value: /^#[0-9a-f]{6}$/i.test(colour) ? colour : '#e5383b', onchange: (e) => { prefs.set('padColor', e.target.value); again(); } })),
     withPen ? sizes() : null);
   const settingsBox = () => {
@@ -13344,7 +13341,7 @@ renderSecNav();
 /* the sidebar's tool buttons in two short columns, so the notebook list keeps its room under the section list
    (the full names stay as tooltips). Runs after every module has added its button. The AI button keeps its full width. */
 setTimeout(() => {
-  const short = { joinBtn: 'Join a page', padBtn: 'Drawing pad', blocksBtn: 'Blocks', libraryBtn: 'Recordings', trashBtn: 'Deleted', backupBtn: 'Backup', helpBtn: 'Help' };
+  const short = { joinBtn: 'Join a page', padBtn: 'Drawing pad', blocksBtn: 'Blocks', libraryBtn: 'Recordings', trashBtn: 'Deleted', backupBtn: 'Backup', helpBtn: 'Help', settingsBtn: 'Settings' };
   for (const [id, label] of Object.entries(short)) {
     const b = document.getElementById(id); if (!b) continue;
     const full = b.textContent.trim();
@@ -15021,6 +15018,52 @@ function pdfFromJpegs(pages, title) {
 /* the PDF button in the top bar, next to Share */
 const pdfBtn = h('button', { class: 'btn ghost small pdf-btn', id: 'pdfBtn', hidden: true, title: 'Download this page as a PDF', 'aria-label': 'Download this page as a PDF', onclick: () => exportPdf() }, svg('download'), h('span', null, 'PDF'));
 $('#shareBtn').before(pdfBtn);
+/* ================= ⚙ Settings: the whole app's settings in one place =================
+   Sidebar → Settings (next to Help) and View → Settings. Background (black, white, navy blue, like the device),
+   the accent colour (the red of buttons, chosen items and highlights: red, pink, blue, green or black), the intro,
+   the coming sections, AI settings. The accent is the pref 'accent'; red is the app's own colour (no override). */
+const ACCENTS = {
+  red: { label: 'Red', dark: ['#E5383B', '#FFFFFF', '#3B1517', '#FF7B7B'], light: ['#D92D2D', '#FFFFFF', '#FBE4E4', '#C21F1F'] },
+  pink: { label: 'Pink', dark: ['#FF5FA2', '#1A0710', '#3E1729', '#FF8CBF'], light: ['#D6337A', '#FFFFFF', '#FCE3EE', '#B8235F'] },
+  blue: { label: 'Blue', dark: ['#4C8DFF', '#06101F', '#14274A', '#8AB6FF'], light: ['#2563EB', '#FFFFFF', '#E3ECFD', '#1D4FC4'] },
+  green: { label: 'Green', dark: ['#2FBF71', '#04140B', '#13331F', '#6FD48F'], light: ['#168A4A', '#FFFFFF', '#E2F4E9', '#11703C'] },
+  black: { label: 'Black', dark: ['#EDEDF0', '#111113', '#2B2B30', '#DADADF'], light: ['#141416', '#FFFFFF', '#E7E7EA', '#141416'] },
+};
+const isDarkTheme = () => { const t = prefs.get('theme', 'dark'); return t === 'dark' || t === 'navy' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches); };
+function applyAccent() {
+  const k = prefs.get('accent', 'red'), a = ACCENTS[k], st = document.documentElement.style;
+  const vars = ['--accent', '--accent-ink', '--accent-soft', '--link', '--magic', '--magic-soft'];
+  if (!a || k === 'red') { for (const v of vars) st.removeProperty(v); }
+  else { const c = isDarkTheme() ? a.dark : a.light; [c[0], c[1], c[2], c[3], c[0], c[2]].forEach((x, i) => st.setProperty(vars[i], x)); }   // the chips' “magic” colour follows too
+  document.documentElement.dataset.accent = ACCENTS[k] ? k : 'red';
+}
+applyAccent();
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyAccent); } catch {}
+
+function settingsModal() {
+  const body = h('div', { class: 'settings' });
+  const render = () => {
+    body.textContent = '';
+    const theme = prefs.get('theme', 'dark'), accent = prefs.get('accent', 'red');
+    const seg = (items, cur0, fn) => h('div', { class: 'set-seg', role: 'group' }, items.map(([v, l]) => h('button', { class: 'chip', 'aria-pressed': String(cur0 === v), onclick: () => { fn(v); render(); } }, l)));
+    const check = (label, on, fn, hint) => { const c = h('input', { type: 'checkbox', checked: on ? true : null }); c.addEventListener('change', () => fn(c.checked)); return h('label', { class: 'set-check', title: hint || '' }, c, h('span', null, label)); };
+    body.append(
+      h('h3', null, 'Background'),
+      seg([['dark', 'Black'], ['light', 'White'], ['navy', 'Navy blue'], ['auto', 'Like my device']], theme, (v) => { prefs.set('theme', v); applyTheme(); }),
+      h('h3', null, 'Accent colour'),
+      h('p', { class: 'hint' }, 'The colour of buttons, chosen items and highlights in the app.'),
+      h('div', { class: 'set-accents', role: 'group', 'aria-label': 'Accent colour' }, Object.entries(ACCENTS).map(([k, a]) => h('button', { class: 'set-accent', 'aria-pressed': String(accent === k), 'data-accent': k, title: a.label, onclick: () => { prefs.set('accent', k); applyAccent(); render(); } },
+        h('span', { class: 'dot', style: { background: (isDarkTheme() ? a.dark : a.light)[0] } }), h('span', null, a.label)))),
+      h('h3', null, 'The app'),
+      check('Intro animation when the app opens', prefs.get('intro', true), (v) => { prefs.set('intro', v); }),
+      check('Coming sections (preview): Subjects & grades, Calendar, projects, Coding logbook', showPreviews(), (v) => { prefs.set('previews', v); renderSecNav(); if (secOpen) renderSection(); }, 'Screens with example data that show what is coming.'),
+      h('h3', null, 'AI'),
+      h('div', { class: 'btnrow' }, h('button', { class: 'btn small', onclick: () => { m.close(); aiSettingsModal(); } }, svg('sparkle'), 'AI settings')));
+  };
+  render();
+  const m = modal({ title: 'Settings', body: [body], actions: [{ label: 'Done', kind: 'primary' }] });
+}
+$('#helpBtn').after(h('button', { class: 'btn ghost', id: 'settingsBtn', onclick: settingsModal }, svg('cog'), 'Settings'));
 
 /* ================= backup: export everything / import =================
    One JSON file with all notebooks, pages, drawings, sources, chats, scores, fact checks,

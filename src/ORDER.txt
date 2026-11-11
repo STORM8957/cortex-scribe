@@ -47,6 +47,7 @@
 50_ai_edit.js
 51_pagesetup.js
 52_pdf.js
+53_settings.js
 31_backup.js
 26_rest.js
 99_end.html

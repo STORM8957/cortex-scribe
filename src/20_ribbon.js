@@ -167,8 +167,7 @@ let lastTextColor = prefs.get('tColor', '#B42318'), lastHlColor = prefs.get('hCo
 function colorBtn(icon, label, get, set) {
   const b = rb(icon, label, () => set(get()), { cls: 'colorbtn' });
   const bar = h('span', { class: 'bar', style: { background: get() } }); b.append(bar);
-  const hl = label.includes('Highlight');
-  const dd = rb('down', label + ': choose colour', (e) => openPalette(e.currentTarget, (c) => { if (c) bar.style.background = c; set(c); }, { none: hl ? 'No highlight' : 'Automatic', colors: hl ? BASIC_HL.concat(['#FFC890', '#D7C4FF']) : null }));
+  const dd = rb('down', label + ': choose colour', (e) => openPalette(e.currentTarget, (c) => { if (c) bar.style.background = c; set(c); }, { none: label.includes('Highlight') ? 'No highlight' : 'Automatic' }));
   dd.style.minWidth = '18px'; dd.style.padding = '0 2px';
   return h('span', { class: 'rgroup' }, b, dd);
 }
@@ -232,7 +231,7 @@ function renderRibbon() {
     const cols = isHl ? HL_COLORS : INK_COLORS;
     const cur0 = isHl ? inkState.hlColor : inkState.color;
     const sws = h('div', { class: 'swatches' }, cols.map((c) => nodown(h('button', { class: 'sw', style: { background: c }, 'aria-label': c === 'var(--ink)' ? 'Black (white on a dark page)' : 'Colour ' + c, title: c === 'var(--ink)' ? 'Black (white on a dark page)' : c, 'aria-pressed': String(c === cur0), onclick: () => { if (tool === 'hl') { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); if (tool !== 'pen') setTool('pen'); } renderRibbon(); } }))),
-      nodown(h('button', { class: 'sw', style: { background: 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' }, 'aria-label': 'Other colour', onclick: (e) => openPalette(e.currentTarget, (c) => { if (!c) return; if (tool === 'hl') { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); } renderRibbon(); }, { colors: isHl ? HL_ALL : INK_ALL.concat(COLORS.filter((x) => !INK_ALL.includes(x))) }) })));
+      nodown(h('button', { class: 'sw', style: { background: 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' }, 'aria-label': 'Other colour', onclick: (e) => openPalette(e.currentTarget, (c) => { if (!c) return; if (tool === 'hl') { inkState.hlColor = c; prefs.set('hlColor', c); } else { inkState.color = c; prefs.set('inkColor', c); } renderRibbon(); }) })));
     const sizes = isHl ? [10, 18, 28] : [2, 3, 6];
     const curS = isHl ? inkState.hlSize : inkState.size;
     const sz = h('div', { class: 'sizes' }, sizes.map((s, i) => rb(null, ['Thin', 'Medium', 'Thick'][i], () => { if (tool === 'hl') { inkState.hlSize = s; prefs.set('hlSize', s); } else { inkState.size = s; prefs.set('inkSize', s); } renderRibbon(); }, { html: '<span style="width:' + (4 + i * 4) + 'px;height:' + (4 + i * 4) + 'px"></span>' })));
@@ -275,7 +274,7 @@ function renderRibbon() {
       rb('fit', view.kind === 'board' ? 'Fit everything' : 'Fit to width', () => view.fit()), rb(null, 'Actual size', () => view.zoomReset(), { html: '<span style="font-weight:700;font-size:12.5px">100%</span>' }), rsep());
     if (view.kind === 'board') add(rb('present', 'Present the frames as slides', () => present(), { big: true, text: 'Present' }));
     add(rselect('Colours', [['dark', 'Black (with red)'], ['light', 'White'], ['navy', 'Navy blue'], ['auto', 'Match my device']], prefs.get('theme', 'dark'), (v) => { prefs.set('theme', v); applyTheme(); }),
-      rb('sidebar', 'Show or hide notebooks', () => toggleSide(), { text: 'Notebooks' }));
+      rb('sidebar', 'Show or hide notebooks', () => toggleSide(), { text: 'Notebooks' }), rb('cog', 'Settings: background, accent colour, intro, AI', () => settingsModal(), { text: 'Settings' }));
     const pvw = h('input', { type: 'checkbox', checked: showPreviews() ? true : null });   // 47_sections.js
     pvw.addEventListener('change', () => { prefs.set('previews', pvw.checked); renderSecNav(); if (secOpen) renderSection(); });
     add(h('label', { class: 'rcheck', title: 'Subjects & grades, Calendar, Task and Study projects, Coding logbook: screens with example data that show what is coming.' }, pvw, 'Coming sections (preview)'));
@@ -304,6 +303,7 @@ function syncRibbonState() {
 function applyTheme() {
   const t = prefs.get('theme', 'dark');
   if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+  if (typeof applyAccent === 'function') applyAccent();   // 53_settings.js: the accent colour depends on dark or light
   if (view) view.renderAll(true);
   v3Theme();
 }

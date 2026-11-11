@@ -663,7 +663,7 @@ function pmSide() {
   };
   const sizes = () => h('div', { class: 'sizes' }, [2, 3.6, 7, 12].map((sz, i) => h('button', { class: 'tb', 'aria-label': ['Thin', 'Normal', 'Thick', 'Very thick'][i] + ' line', 'aria-pressed': String(prefs.get('padSize', 3.6) === sz), onclick: () => { prefs.set('padSize', sz); again(); } }, h('span', { style: { width: (3 + i * 3) + 'px', height: (3 + i * 3) + 'px' } }))));
   const colourBox = (withPen) => h('section', { class: 'pm-box' }, h('h4', null, withPen ? 'Colour and pen' : 'Colour'),
-    h('div', { class: 'swatches pad-sw' }, PAD_BASIC.map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, 'aria-label': 'Colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(colour === c), onclick: () => { prefs.set('padColor', c); again(); } })),
+    h('div', { class: 'swatches pad-sw' }, PAD_COLORS.slice(0, 14).map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, 'aria-label': 'Colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(colour === c), onclick: () => { prefs.set('padColor', c); again(); } })),
       h('input', { type: 'color', 'aria-label': 'Any colour', value: /^#[0-9a-f]{6}$/i.test(colour) ? colour : '#e5383b', onchange: (e) => { prefs.set('padColor', e.target.value); again(); } })),
     withPen ? sizes() : null);
   const settingsBox = () => {

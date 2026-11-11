@@ -295,7 +295,7 @@ renderSecNav();
 /* the sidebar's tool buttons in two short columns, so the notebook list keeps its room under the section list
    (the full names stay as tooltips). Runs after every module has added its button. The AI button keeps its full width. */
 setTimeout(() => {
-  const short = { joinBtn: 'Join a page', padBtn: 'Drawing pad', blocksBtn: 'Blocks', libraryBtn: 'Recordings', trashBtn: 'Deleted', backupBtn: 'Backup', helpBtn: 'Help' };
+  const short = { joinBtn: 'Join a page', padBtn: 'Drawing pad', blocksBtn: 'Blocks', libraryBtn: 'Recordings', trashBtn: 'Deleted', backupBtn: 'Backup', helpBtn: 'Help', settingsBtn: 'Settings' };
   for (const [id, label] of Object.entries(short)) {
     const b = document.getElementById(id); if (!b) continue;
     const full = b.textContent.trim();

@@ -24,7 +24,7 @@ Your key stays on your computer. Details for developers: `docs/AI.md`.
 ## Draw on another screen
 **Download as PDF:** the **PDF** button at the top (next to Share), View → **PDF**, or **Download as PDF** in a page's menu in the list. A4 pages keep their size and header and footer; an endless page is cut into A4 pages; a board becomes one page. The text in the PDF is a picture of the page (it can't be selected).
 
-**Colours:** the colour rows show 5 basic colours (red, pink, blue, green, black); **More colours** or the rainbow button has all the others. View → Colours: black, white or navy blue.
+**⚙ Settings** (bottom left, next to Help): the background (black, white, navy blue) and the accent colour of the app (red, pink, blue, green or black).
 
 **A4 pages** have a **Page setup** (View tab, or the Format panel): the size (A4, A3, A5, Letter, Legal), upright or sideways, the margins, a header and footer, and page numbers. Double-click in the top or bottom margin to write the header or footer, like in Word. The turn button next to a page turns only that page (for a wide table or chart).
 

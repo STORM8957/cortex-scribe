@@ -1,6 +1,5 @@
 
 /* ================= handwriting pad extras: modes, colours, style, drawing → picture ================= */
-const PAD_BASIC = ['#E5383B', '#FF5FA2', '#2563EB', '#16A34A', 'ink'];   // the 5 basic colours; “Any colour” for the rest
 const PAD_COLORS = ['ink', '#000000', '#7F7F7F', '#880015', '#ED1C24', '#FF7F27', '#FFF200', '#22B14C', '#00A2E8', '#3F48CC', '#A349A4', '#FFFFFF', '#C3C3C3', '#B97A57', '#FFAEC9', '#FFC90E', '#EFE4B0', '#B5E61D', '#99D9EA', '#7092BE', '#C8BFE7'];
 const padMode = () => prefs.get('padMode', 'write');
 let padStyleBlob = null;
@@ -14,7 +13,7 @@ function dataURLtoBlob(d) {
 function renderPadTools() {
   const box = $('#padTools'); if (!box) return; box.textContent = '';
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'What the pad is for' }, [['write', 'Write text'], ['draw', 'Draw a picture']].map(([k, l]) => h('button', { class: 'chip', 'aria-pressed': String(padMode() === k), onclick: () => { prefs.set('padMode', k); clearTimeout(pad.timer); renderPadTools(); } }, l)));
-  const sws = h('div', { class: 'swatches pad-sw' }, PAD_BASIC.map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, title: c === 'ink' ? 'Black (white on a dark page)' : c, 'aria-label': 'Pad colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(pad.color === c), onclick: () => { pad.color = c; prefs.set('padColor', c); renderPadTools(); } })),
+  const sws = h('div', { class: 'swatches pad-sw' }, PAD_COLORS.map((c) => h('button', { class: 'sw', style: { background: c === 'ink' ? 'var(--ink)' : c }, title: c === 'ink' ? 'Ink' : c, 'aria-label': 'Pad colour ' + (c === 'ink' ? 'ink' : c), 'aria-pressed': String(pad.color === c), onclick: () => { pad.color = c; prefs.set('padColor', c); renderPadTools(); } })),
     h('input', { type: 'color', 'aria-label': 'Any colour', value: /^#[0-9a-f]{6}$/i.test(pad.color) ? pad.color : '#e5383b', onchange: (e) => { pad.color = e.target.value; prefs.set('padColor', pad.color); renderPadTools(); } }));
   const sizes = h('div', { class: 'sizes' }, [2, 3.6, 7, 12].map((s, i) => h('button', { class: 'tb', 'aria-label': ['Thin', 'Normal', 'Thick', 'Very thick'][i] + ' line', 'aria-pressed': String(pad.size === s), onclick: () => { pad.size = s; prefs.set('padSize', s); renderPadTools(); } }, h('span', { style: { width: (3 + i * 3) + 'px', height: (3 + i * 3) + 'px' } }))));
   box.append(seg, h('div', { class: 'pad-row' }, sws, sizes));
